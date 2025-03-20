@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>SOM: My Personal Sommelier</title>
+    <link id="css" rel="stylesheet" href="/static/css/som.css?t=6"></link>
+</head>
+<body>
+    <div class="gradient-container"></div>
+
+    <div class="chat-container">
+        <div class="messages" id="messages">
+            
+        </div>
+
+        <div class="input-container" id="inputContainer">
+            <button class="photo-button" id="photoButton" onclick="document.getElementById('fileInput').click()">📷</button>
+            <input type="file" id="fileInput" style="display:none;" accept="image/*" onchange="uploadImage()">
+            <input type="text" onchange="sendMessage()" id="messageInput" placeholder="Ask for a recommendation..." >
+        </div>
+    </div>
+
+    <div class="header" id="header">
+        <img id="som" src="/static/images/som_white.png" />
+        <img id="som_eyes_blink" class="blinking-image" src="/static/images/som_eyes_crop.png" />
+    </div>
+
+    <div id="somcast_link">
+        <a href="/somcast"><img id="somcast_icon" src="/static/images/somcast_icon.png" /></a>
+    </div>
+
+    <div id="profile_link">
+        <a href="/profile"><img id="profile_image" src="/static/images/fake_profile_photo_sm.png?t=1" /></a>
+    </div>
+
+    <script>
+
+        /**
+         * Forces a reload of all stylesheets by appending a unique query string
+         * to each stylesheet URL.
+         */
+        function reloadStylesheets() {
+            var queryString = '?reload=' + new Date().getTime();
+            $('link[rel="stylesheet"]').each(function () {
+                this.href = this.href.replace(/\?.*|$/, queryString);
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const messageText = input.value.trim();
+            input.value = '';
+            input.blur();
+            if (!messageText) return;
+
+            appendMessage(messageText, 'user');
+            
+            showThinking();
+            
+            const formData = new FormData();
+            formData.append('file', null);  // Ensure 'file' matches FastAPI parameter name
+            formData.append('prompt', messageText);  // Optional text prompt
+
+            $.ajax({
+                url: '/prompt/',  // Ensure it matches FastAPI's `/upload/`
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                enctype: 'multipart/form-data',  // Explicitly set encoding
+                success: function(response) {
+                    //appendCard(response);
+                    const info = JSON.parse(response['response'])
+                    appendCard(info);
+                    console.log(JSON.stringify(response, null, 2));
+                    removeThinking();
+                },
+                error: function(xhr) {
+                    appendMessage('Error uploading prompt: ' + xhr.responseText, 'bot');
+                    removeThinking();
+                }
+            });
+
+        }
+
+        function uploadImage() 
+        {
+            showThinking();
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement("canvas");
+                        const ctx = canvas.getContext("2d");
+                        const maxWidth = 1024;
+                        const maxHeight = 1024;
+
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            currentImage = new File([blob], file.name, { type: "image/jpeg" });
+
+                            // Show a preview 
+                            const imgSrc = URL.createObjectURL(blob);                        
+
+                            removeThinking();
+                            appendMessage('<img src="'+imgSrc+'" class="image-thumbnail" />', 'image_upload');
+                            showThinking();
+
+                            const formData = new FormData();
+                            formData.append('file', file);  // Ensure 'file' matches FastAPI parameter name
+                            formData.append('prompt', '');  // Optional text prompt
+
+                            $.ajax({
+                                url: '/image/',  // Ensure it matches FastAPI's `/upload/`
+                                type: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                enctype: 'multipart/form-data',  // Explicitly set encoding
+                                success: function(response) {
+                                    const info = JSON.parse(response['response'])
+                                    appendCard(info);
+                                    console.log(JSON.stringify(response, null, 2));
+                                    //appendMessage(JSON.stringify(response, null, 2), 'bot');
+                                    removeThinking();
+                                },
+                                error: function(xhr) {
+                                    appendMessage('Error uploading image: ' + xhr.responseText, 'bot');
+                                    removeThinking();
+                                }
+                            });
+
+
+                        }, "image/jpeg", 0.8);
+                    };
+                };
+            }
+        }
+
+        function appendCard(response) {
+            const category = response['category'];
+            const messages = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add('bot');
+            
+            // Build a card
+            card = '<div class="card">';
+            //"wine_menu" | "wine_label" | "food" | "occasion" 
+            if ( category == "wine_menu" )
+            {
+                card += '<h3>Menu Recommendation</h3>';
+                //card += '<h3>'+response['title']+'</h3>';
+                card += '<p>'+response['analysis']['prediction']+'</p>';
+                card += '<p>'+response['reasoning']+'</p>';
+            }
+            else if ( category == "wine_label" )
+            {
+                card += '<h3>Wine Prediction</h3>';
+                //card += '<h3>'+response['title']+'</h3>';
+                card += '<p>'+response['analysis']['wines']+'</p>';
+                card += '<p>Your predicted rating: <strong>'+response['analysis']['prediction']+'</strong></p>';
+                card += '<p>'+response['reasoning']+'</p>';
+            }
+            else if ( category == "food" )
+            {
+                //card += '<h3>Pairing Recommendation</h3>';
+                card += '<h3>'+response['title']+'</h3>';
+                card += '<p>'+response['analysis']['pairing']+'</p>';
+                card += '<p>'+response['reasoning']+'</p>';
+                card += '<p class="buy_link"><a href="https://www.wine.com/search/'+encodeURIComponent(topPick)+'" target="_blank">Buy Now 🛒</a></p>';
+            }
+            else if ( category == "occasion" )
+            {
+                const topPick = response['analysis']['top_pick']
+                const buyLink = response['analysis']['buy_link']
+                //card += '<h3>Occasion Suggestion</h3>';
+                card += '<h3>'+response['title']+'</h3>';
+                card += '<p>'+topPick+'</p>';
+                card += '<p>'+response['reasoning']+'</p>';
+                card += '<p class="buy_link"><a href="'+buyLink+'" target="_blank">Buy Now 🛒</a></p>';
+            }
+
+            card += '</div>';
+            messageDiv.innerHTML = card;
+
+            messages.appendChild(messageDiv);
+            
+            // Smooth scroll to bottom
+            messages.scrollTo({top : messages.scrollHeight, behavior : 'smooth'})
+        }
+
+        function appendMessage(text, sender) {
+            const messages = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender);
+            //messageDiv.textContent = text;
+            messageDiv.innerHTML = text;
+            messages.appendChild(messageDiv);
+            //messages.scrollTop = messages.scrollHeight;
+
+            // Smooth scroll to bottom
+            messages.scrollTo({top : messages.scrollHeight, behavior : 'smooth'})
+        }
+
+        function showThinking(){
+            //appendMessage('<img src="/static/images/loading_transparent.gif" id="loading_gif"/>', 'loading');
+            appendMessage('<img src="/static/images/spinnger_30fps.gif" id="loading_gif"/>', 'loading');            
+        }
+
+        function removeThinking(){
+            const elements = document.querySelectorAll('.message.loading');
+            elements.forEach(element => {
+                element.remove();
+            });            
+        }
+
+        // BACKGROUND ANIMATION
+
+        let angle = 0;
+        let colorIndex = 0;
+        let transitionProgress = 0;
+        
+        // Reds
+        const colorList1 = ["#881d5f", "#f0678d", "#f19ecf"]; //["#881d5f", "#4f2d57", "#f0678d", "#f19ecf"]; // ["#881d5f"];//
+
+        // Whites
+        const colorList2 = ["#f7a13b", "#ffd553", "#ebe296"]; //["#f7a13b", "#d9baad", "#ffd553", "#ebe296"]; // ["#d9baad"]; //
+        
+        function interpolateColor(color1, color2, factor) {
+            const c1 = parseInt(color1.slice(1), 16);
+            const c2 = parseInt(color2.slice(1), 16);
+            
+            const r = Math.round(((c1 >> 16) * (1 - factor)) + ((c2 >> 16) * factor));
+            const g = Math.round((((c1 >> 8) & 0xff) * (1 - factor)) + (((c2 >> 8) & 0xff) * factor));
+            const b = Math.round(((c1 & 0xff) * (1 - factor)) + ((c2 & 0xff) * factor));
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        function animateGradient() {
+            angle += 0.05; // Even slower rotation
+            if (angle >= 360) angle = 0;
+            
+            transitionProgress += 0.001; // Smooth transition between colors
+            if (transitionProgress >= 1) {
+                transitionProgress = 0;
+                colorIndex = (colorIndex + 1) % colorList1.length;
+            }
+            
+            const nextIndex = (colorIndex + 1) % colorList1.length;
+            const color1 = interpolateColor(colorList1[colorIndex], colorList1[nextIndex], transitionProgress);
+            const color2 = interpolateColor(colorList2[colorIndex], colorList2[nextIndex], transitionProgress);
+            
+            document.body.style.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+            requestAnimationFrame(animateGradient);
+        }
+        
+        animateGradient();
+
+        function startBlinking() {
+          const img = document.querySelector('.blinking-image');
+
+          function blink() {
+            img.style.animation = 'none'; // Reset animation
+            void img.offsetWidth; // Trigger reflow
+            img.style.animation = 'blink 1s ease-in-out'; // Restart animation
+
+            const nextBlink = Math.random() * 10000 + 2000; // Random interval
+            setTimeout(blink, nextBlink);
+          }
+
+          blink(); // Start the blinking loop
+        }
+
+        document.addEventListener("DOMContentLoaded", startBlinking);
+
+        document.addEventListener("DOMContentLoaded", function(){
+            appendMessage("Hello William. I'm SOM, your personalized Sommelier AI. You can <b>show me a label</b> and I'll tell you if you'll like it, I can <b>select a wine from a menu</b>, or I can <b>suggest a wine for an occasaion</b>. Just ask.", 'bot');
+            //showThinking();
+        });
+
+    </script>
+</body>
+</html>

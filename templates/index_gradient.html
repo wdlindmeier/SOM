@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOM: My Personal Sommelier</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(45deg, #e09f3e, #9d3ee0);
+            background-size: 200% 200%;
+            transition: background 5s ease-in-out;
+        }
+        .gradient-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+        }
+        @keyframes blink {
+          0% { transform: scaleY(1); }
+          10% { transform: scaleY(0); }
+          20% { transform: scaleY(1); }
+        }
+
+        .blinking-image {
+          display: inline-block; /* Ensures transform works properly */
+          transform-origin: 80% 50%;
+          animation: blink 0.3s ease-in-out;
+          animation-play-state: paused; /* Animation will be triggered via JS */
+        }
+        img#som, img#som_eyes_full {
+            width:154px;
+            position:absolute;
+        }
+        img#som_eyes_blink {
+            width:18px;
+            position:absolute;
+            z-index:1;
+            margin-left:-26px;
+            margin-top:-9px;
+        }
+    </style>
+    <script>
+        function startBlinking() {
+          const img = document.querySelector('.blinking-image');
+
+          function blink() {
+            img.style.animation = 'none'; // Reset animation
+            void img.offsetWidth; // Trigger reflow
+            img.style.animation = 'blink 1s ease-in-out'; // Restart animation
+
+            const nextBlink = Math.random() * 10000 + 2000; // Random interval
+            setTimeout(blink, nextBlink);
+          }
+
+          blink(); // Start the blinking loop
+        }
+
+        document.addEventListener("DOMContentLoaded", startBlinking);
+    </script>
+</head>
+<body>
+    <div class="gradient-container"></div>
+    
+    <script>
+        let angle = 0;
+        let colorIndex = 0;
+        let transitionProgress = 0;
+        
+        // Reds
+        const colorList1 = ["#881d5f", "#4f2d57", "#f0678d", "#f19ecf"];
+
+        // Whites
+        const colorList2 = ["#f7a13b", "#d9baad", "#ffd553", "#ebe296"];
+        
+        function interpolateColor(color1, color2, factor) {
+            const c1 = parseInt(color1.slice(1), 16);
+            const c2 = parseInt(color2.slice(1), 16);
+            
+            const r = Math.round(((c1 >> 16) * (1 - factor)) + ((c2 >> 16) * factor));
+            const g = Math.round((((c1 >> 8) & 0xff) * (1 - factor)) + (((c2 >> 8) & 0xff) * factor));
+            const b = Math.round(((c1 & 0xff) * (1 - factor)) + ((c2 & 0xff) * factor));
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        function animateGradient() {
+            angle += 0.05; // Even slower rotation
+            if (angle >= 360) angle = 0;
+            
+            transitionProgress += 0.001; // Smooth transition between colors
+            if (transitionProgress >= 1) {
+                transitionProgress = 0;
+                colorIndex = (colorIndex + 1) % colorList1.length;
+            }
+            
+            const nextIndex = (colorIndex + 1) % colorList1.length;
+            const color1 = interpolateColor(colorList1[colorIndex], colorList1[nextIndex], transitionProgress);
+            const color2 = interpolateColor(colorList2[colorIndex], colorList2[nextIndex], transitionProgress);
+            
+            document.body.style.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+            requestAnimationFrame(animateGradient);
+        }
+        
+        animateGradient();
+    </script>
+
+    <img id="som" src="/static/images/som_white.png" />
+    <!--img id="som_eyes_full" src="/static/images/som_eyes_full.png" /-->
+    <img id="som_eyes_blink" class="blinking-image" src="/static/images/som_eyes_crop.png" />
+</body>
+</html>

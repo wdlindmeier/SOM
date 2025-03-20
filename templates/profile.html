@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>SOM: My Profile</title>
+    <link id="css" rel="stylesheet" href="/static/css/som.css?t=3"></link>
+    <style>
+        #profile_screenshot, #profile_top, #profile_bottom{
+            xwidth:100vw;
+            xheight:auto;
+            width:402px;
+            padding:0;margin:0;
+            display:block;            
+        }
+        #profile_summary{
+            background-color: rgba(255,255,255,0.6);
+            border-radius: 0 0 15px 15px;
+            margin:0 18px 0 20px;
+            width:364px;
+            padding:15px 0 15px 0;
+        }
+        #profile_summary h2, #profile_summary p {
+            padding:0 20px; 
+            margin:0;
+        }
+
+        #profile_summary h2{
+            font-size: 18px;
+            line-height: 2em;
+            margin-bottom:5px;
+        }
+        
+        #profile_summary p{
+            font-size:14px;
+            margin: 0 0 15px 0;
+        }
+
+        html, body{
+            height:auto;
+            overflow: auto;
+            xpadding-bottom:50px;
+            padding:0 0 50px 0;
+            margin:0;
+        }
+        #som_home_link{
+            display:block;
+            width:100%;
+            text-align: center;
+            height:70px;
+            position:auto;
+            left:auto;top:auto;
+            line-height:50px;
+            font-size:2em;            
+        }
+        #som_home_link a{
+            color:transparent;   
+            line-height:70px;         
+            display:inline-block;
+            height:70px;
+            width:120px;            
+        }
+
+    </style>
+    <script>        
+
+    </script>
+</head>
+<body>
+    <div id="profile"><img src="/static/images/profile_top.png?t=1" id="profile_top" /><div id="profile_summary">
+            <h2>Your Signature Sip: An Overview</h2>
+            <p>Your tasting history reveals a clear affinity for robust, multifaceted red wines—especially bold California blends and structured Italian varietals like Barolo. You consistently reward wines with layers of spice, earthy notes, and a touch of smokiness. Consider an evening pairing a full‐bodied Barolo with a hearty braised short rib dinner to mirror your preference for wines that pack both power and nuance.</p>
+
+            <p>You seem to choose wines not just for their intrinsic merits but also for their contextual and emotional resonance. Many of your tastings are intertwined with significant family events, celebrations, or unique moments—be it a toast at a farewell or a special anniversary dinner—indicating that you value the story as much as the sip.</p>
+            <h2>Next Pour: Expanding Your Palate </h2>
+            <p>As you continue to evolve as a taster, consider broadening your repertoire beyond California and Northern Italian wines by sampling offerings from the Southern Rhône or even more unexpected regions like Rioja in Spain. Delving into single‐varietal expressions, perhaps a nuanced White Burgundy or an age-worthy Grenache, could stimulate your palate and expand your appreciation of different terroirs.</p>
+
+            <p>A comparative tasting event featuring classic European reds alongside Californian counterparts would be an excellent next step in expanding both the depth and breadth of your wine experiences.</p>
+        </div><img src="/static/images/profile_bottom.png" id="profile_bottom" /></div>
+    <div id="som_home_link">
+        <a href="/">SOM</a>
+    </div>
+
+</body>
+</html>

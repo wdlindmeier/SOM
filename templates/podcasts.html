@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>SOMCast: A Wine Discovert Podcast</title>
+    <link id="css" rel="stylesheet" href="/static/css/som.css?t=3"></link>
+    <style>
+        html, body{
+            xoverflow: auto;
+            background: linear-gradient(45deg, #f0678d, #f7a13b);
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            margin: 80px auto auto auto;
+            overflow-y:scroll;
+            height: calc(100vh - 160px);            
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        #somcast{
+            height:40px;
+        }
+        #somcast_header
+        {
+            text-align: center;
+        }
+
+        #header {
+            left:calc(50vw - 120px);
+        }
+
+        .episode-card {
+            background-color: #000;
+            border-radius: 10px;
+            margin: 10px 0 20px 0;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            position: relative;
+            width:100%;
+            height:200px;
+        }
+        .episode-card:last-child {
+            margin-bottom:50px;
+        }
+        .episode-card img {
+            width: 100%;
+            display: block;
+        }
+        .episode-card strong {
+            line-height:1.5em;
+            font-size:1.2em;
+        }
+        .episode-info {
+            padding: 15px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 16px;
+        }
+        .play-icon {
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            xbackground: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            width:40px;
+            height:40px;
+            text-align:center;
+        }
+        .detail-container {
+            background-color: #eef0e3;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .play-button {
+            background-color: #7b8f59;
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        .related-wines {
+            margin-top: 20px;
+        }
+        .wine-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .wine-card img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+        .wine-card .wine-info {
+            font-size: 14px;
+        }
+        .buy-button {
+            background-color: #1c6ed0;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .podcast_pairing{
+            width:100%;
+            height:70px;
+            bottom:0px;
+            left:0;    
+            position: absolute;
+            padding-left: 25px;
+            padding-top:20px;
+            color: white;
+            font-size: 16px;
+            background-color: rgba(255,255,255,0.75);
+        }
+        .podcast_pairing a, .podcast_pairing a:hover {
+            color:#000;
+            font-weight:bold;
+        }
+        .podcast_pairing p {
+            font-size:12px;
+            margin:0;padding:0;
+            padding-left:65px;
+            width:calc(100% - 120px);
+            color:#000;
+        }
+
+        .podcast_pairing img {
+            width:50px;
+            height:50px;
+            float:left;
+            border-radius: 4px;
+            object-fit:cover;
+        }
+
+        .episode_image_card{
+            min-width:100%;
+            height:100%;
+            opacity:0.6;
+            object-fit:cover;
+        }
+
+    </style>
+    <script>
+        var episodePlaying = -1;
+        function playpause(episodeID)
+        {
+            console.log("playpause " + episodeID);
+            var isEpisodePlaying = episodePlaying >= 0;
+            if (isEpisodePlaying)
+            {
+                button = document.getElementById('play_icon_' + episodePlaying);
+                button.src = "/static/images/play_icon.png";   
+            }
+
+            const player = document.getElementById('podcast_'+episodeID);
+
+            if ( episodePlaying == episodeID )
+            {
+                episodePlaying = -1;
+                player.pause();
+            }
+            else 
+            {
+                episodePlaying = episodeID;
+                // Play something
+                button = document.getElementById('play_icon_' + episodeID)
+                button.src = "/static/images/pause_icon.png";
+                player.play();
+            }
+        }
+
+
+                // BACKGROUND ANIMATION
+
+        let angle = 0;
+        let colorIndex = 0;
+        let transitionProgress = 0;
+        
+        // Reds
+        const colorList1 = ["#881d5f"];//["#881d5f", "#4f2d57", "#f0678d", "#f19ecf"];
+
+        // Whites
+        const colorList2 = ["#d9baad"]; //["#f7a13b", "#d9baad", "#ffd553", "#ebe296"];
+        
+        function interpolateColor(color1, color2, factor) {
+            const c1 = parseInt(color1.slice(1), 16);
+            const c2 = parseInt(color2.slice(1), 16);
+            
+            const r = Math.round(((c1 >> 16) * (1 - factor)) + ((c2 >> 16) * factor));
+            const g = Math.round((((c1 >> 8) & 0xff) * (1 - factor)) + (((c2 >> 8) & 0xff) * factor));
+            const b = Math.round(((c1 & 0xff) * (1 - factor)) + ((c2 & 0xff) * factor));
+            
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+        
+        function animateGradient() {
+            angle += 0.05; // Even slower rotation
+            if (angle >= 360) angle = 0;
+            
+            transitionProgress += 0.001; // Smooth transition between colors
+            if (transitionProgress >= 1) {
+                transitionProgress = 0;
+                colorIndex = (colorIndex + 1) % colorList1.length;
+            }
+            
+            const nextIndex = (colorIndex + 1) % colorList1.length;
+            const color1 = interpolateColor(colorList1[colorIndex], colorList1[nextIndex], transitionProgress);
+            const color2 = interpolateColor(colorList2[colorIndex], colorList2[nextIndex], transitionProgress);
+            
+            document.body.style.background = `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+            requestAnimationFrame(animateGradient);
+        }
+        
+        document.addEventListener("DOMContentLoaded", function(){
+            //animateGradient();
+        });
+    </script>
+</head>
+<body>
+    <!--div class="gradient-container"></div-->
+
+     <div class="container" id="index-page">
+        <h1>Episodes</h1>
+        <div class="episode-card" id="episode_0">
+            <img id="episode_0_image_card" src="/static/images/volcano.png" class="episode_image_card" />
+            <div class="episode-info">
+                <strong>Volcanoes and Vines</strong><br>
+                Wines from Volcanic Landscapes<br>
+
+                <!--Fri March 7-->
+            </div>
+            <audio controls preload="none" src="/static/podcasts/Volcanoes_and_Vines.m4a" id="podcast_0"></audio>
+            <div class="play-icon"><img src="/static/images/play_icon.png" onclick="playpause(0)" id="play_icon_0"/></div>
+            <div class="podcast_pairing">
+                <a href="https://shop.klwines.com/products/details/1828877"><img src="/static/images/Nerello_Mascalese_crop.jpg" class="sip_along_thumbnail"/></a>
+                <p>
+                    Sip along with a <a href="https://shop.klwines.com/products/details/1828877">Nerello Mascalese from Sicily</a>. This Etna Rosso's smoky, mineral-driven flavors will echo the volcanic landscape.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="episode-card" id="episode_1">
+            <img id="episode_1_image_card" src="/static/images/ancient_wine.jpg" class="episode_image_card" />
+            <div class="episode-info">
+                <strong>The Lost Grapes</strong><br>
+                Rescuing Wine’s Forgotten Past<br>
+
+                <!--Fri March 7-->
+            </div>
+            <audio controls preload="none" src="/static/podcasts/The_Lost_Grapes.m4a" id="podcast_1"></audio>
+            <div class="play-icon"><img src="/static/images/play_icon.png" onclick="playpause(1)" id="play_icon_1"/></div>
+            <div class="podcast_pairing">
+                <a href="https://perrineswine.com/products/2021-la-spinetta-colli-tortonesi-timorasso-derthona-piedmont-italy"><img src="/static/images/Timorasso_crop.jpg" class="sip_along_thumbnail"/></a>
+                <p>
+                    Enjoy with a <a href="https://perrineswine.com/products/2021-la-spinetta-colli-tortonesi-timorasso-derthona-piedmont-italy">Timorasso from Piedmont</a>, an ancient grape recently revived. Its deep minerality and complexity make it perfect for appreciating rediscovered varieties.
+                </p>
+            </div>
+        </div>
+
+
+        <div class="episode-card" id="episode_2">
+            <img id="episode_2_image_card" src="/static/images/yeast.jpg" class="episode_image_card" />
+            <div class="episode-info">
+                <strong>Microbial Terroir</strong><br>
+                The Invisible Winemakers<br>
+
+                <!--Fri March 7-->
+            </div>
+            <audio controls preload="none" src="/static/podcasts/Microbial_Terroir.m4a" id="podcast_2"></audio>
+            <div class="play-icon"><img src="/static/images/play_icon.png" onclick="playpause(2)" id="play_icon_2"/></div>
+            <div class="podcast_pairing">
+                <a href="https://www.vivino.com/US/en/gravner-ribolla-gialla/w/1950121"><img src="/static/images/Ribolla_Gialla.png" class="sip_along_thumbnail"/></a>
+                <p>
+                    Try <a href="https://www.vivino.com/US/en/gravner-ribolla-gialla/w/1950121">Gravner Ribolla Gialla</a> from Friuli, Italy, an orange wine fermented with wild yeasts. The natural fermentation highlights microbial influence.
+                </p>
+            </div>
+        </div>
+
+        <div class="episode-card" id="episode_3">
+            <img id="episode_3_image_card" src="/static/images/wine_roots.png" class="episode_image_card" />
+            <div class="episode-info">
+                <strong>The Great Wine Plague</strong><br>
+                Phylloxera and Rebirth<br>
+
+                <!--Fri March 7-->
+            </div>
+            <audio controls preload="none" src="/static/podcasts/The_Great_Wine_Plague.m4a" id="podcast_3"></audio>
+            <div class="play-icon"><img src="/static/images/play_icon.png" onclick="playpause(3)" id="play_icon_3"/></div>
+            <div class="podcast_pairing">
+                <a href="https://www.totalwine.com/wine/red-wine/carmenere/carmen-gran-reserva-carmenere/p/233765750?s=1135&igrules=true"><img src="/static/images/Carmenere_crop.jpg" class="sip_along_thumbnail"/></a>
+                <p>
+                    Sip a <a href="https://www.totalwine.com/wine/red-wine/carmenere/carmen-gran-reserva-carmenere/p/233765750?s=1135&igrules=true">Carménère from Chile</a>, one of the few ungrafted regions that phylloxera never touched. It offers a glimpse into a pre-phylloxera wine world.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+
+    <div class="header" id="header">
+        <img id="somcast" src="/static/images/somcast_no_icon.png?t=1" />
+    </div>
+
+    <div id="som_home_link">
+        <a href="/"><img id="som_home_icon" src="/static/images/som_o_icon.png" /></a>
+    </div>
+
+    <div id="profile_link">
+        <a href="/profile"><img id="profile_image" src="/static/images/fake_profile_photo_sm.png?t=1" /></a>
+    </div>
+
+</body>
+</html>

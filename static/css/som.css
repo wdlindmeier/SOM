@@ -1,0 +1,226 @@
+html, body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    
+    height: 100vh;
+    xheight: calc(var(--vh, 1vh) * 100);
+
+    width: 100vw;
+    overflow: hidden;
+
+    background: linear-gradient(45deg, #e09f3e, #9d3ee0);
+    background-size: 200% 200%;
+    transition: background 5s ease-in-out;
+}
+
+a{
+    cursor:pointer;
+}
+
+#header {
+    width:154px;
+    xheight:52px;
+    position:fixed !important;
+
+    top:20px;
+    left:calc(50vw - 77px);
+    z-index:10;
+}
+
+#profile_link {
+    width:154px;
+    height:52px;
+    position:fixed !important;
+
+    top:20px;
+    right:20px;
+    z-index:10;
+    text-align: right;
+}
+
+#profile_image {
+    width:35px;
+    height:35px;
+    border-radius: 15px;
+    xbox-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+}
+
+#som_home_link{
+
+}
+
+#somcast_link, #som_home_link {
+    height:52px;
+    position:fixed !important;
+    top:19px;
+    xborder:1px solid green;
+    left:20px;
+    z-index:10;
+    text-align: left;
+}
+
+#somcast_icon, #som_home_icon {
+    height:32px;
+}
+
+img#som, img#som_eyes_full {
+    width:100%;
+    position:absolute;
+    z-index:11;
+}
+
+img#som_eyes_blink {
+    width:18px;
+    position:absolute;
+    z-index:12;
+    margin-left:55px;
+    margin-top:16px;
+}
+
+.gradient-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index:-1;
+}
+
+@keyframes blink {
+  0% { transform: scaleY(1); }
+  10% { transform: scaleY(0); }
+  20% { transform: scaleY(1); }
+}
+
+.blinking-image {
+  display: inline-block;
+  transform-origin: 80% 50%;
+  animation: blink 0.3s ease-in-out;
+  animation-play-state: paused;
+}
+
+.chat-container {
+    width: 100vw;
+    height: calc(100vh - 170px);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top:0px !important;
+    xborder:10px solid yellow;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 20px;
+    xborder:10px solid white;
+    margin-top:90px;
+}
+.message {
+    background-color: rgba(255,255,255,0.5);
+    padding: 10px;
+    border-radius: 15px;
+    margin: 5px 0;
+    line-height: 1.3em;
+    display:inline-block;
+}
+
+.message.image_upload, .message.loading {
+    background-color: rgba(0,0,0,0) !important;
+    padding:0;
+    margin:0;
+    border-radius:0;
+}
+
+.message.bot {
+    text-align: left;
+    border-top-left-radius: 0px;
+    float: left;
+}
+
+.message.user, .message.image_upload {
+    text-align: right;
+    border-bottom-right-radius: 0px;
+    float: right;
+}
+
+.image-thumbnail {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 15px;
+    border-bottom-right-radius: 0px;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+    margin-top:10px;
+}
+.message.loading{
+    text-align:left;
+    width:100%;
+}
+#loading_gif{
+    height:80px;
+    xfilter: invert(100%);
+    xopacity:0.6;
+    margin-left:-10px;
+}
+
+.input-container {
+    position: fixed;
+    bottom: 10px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease-in-out;
+    
+    border-radius: 40px;
+    xbackground-color:#fff;
+}
+
+#messageInput, .photo-button {
+    border-radius: 40px;
+    padding: 20px;
+    height:20px;
+}
+
+#messageInput {
+    padding-left:0;
+    border-radius: 0px 40px 40px 0px;
+}
+
+.buy_link{
+    text-align: right;
+}
+.buy_link a{
+    font-weight: bold;
+    text-decoration: none;
+    color:purple;
+}
+input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    padding: 10px;
+}
+.photo-button {
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 0;
+    display:inline-block;
+    width:50px !important;
+    height:50px !important;
+    xfilter: invert(80%);
+    color:transparent;
+    
+    border:10px solid white;
+    border-radius: 30px 0px 0px 30px;
+}
+#photoButton {
+    background: url("/static/images/camera_button_inverted.png") no-repeat;
+    background-size: 100%;
+    text-indent: 500%;
+    white-space: nowrap;
+    overflow: hidden;
+}
